@@ -10,6 +10,23 @@ use SquareConnect;
  */
 class WebPaymentRequest extends AbstractRequest
 {
+    //whether or not to include the shipping address fields in the checkout form
+    protected $include_shipping_address = false;
+    
+    /**
+        Overloaded method for getting or setting the shipping address toggle
+    */
+    public function includeShippingAddress(?bool $include_it = null)
+    {
+        //get it
+        if( is_null($include_it) )
+        {
+            return $this->include_shipping_address;
+        }
+        
+        //set it
+        $this->include_shipping_address = $include_it;
+    }
 
     public function getAccessToken()
     {
@@ -58,7 +75,7 @@ class WebPaymentRequest extends AbstractRequest
                 'reference_id' => $this->getTransactionReference(),
                 'line_items' => $items_list
             )),
-            'ask_for_shipping_address' => false,
+            'ask_for_shipping_address' => $this->includeShippingAddress(),
             'redirect_url' => $this->getReturnUrl()
         );
 
