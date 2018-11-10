@@ -12,10 +12,11 @@ class WebPaymentRequest extends AbstractRequest
 {
     //whether or not to include the shipping address fields in the checkout form
     protected $include_shipping_address = false;
-    
+
     /**
-        Overloaded method for getting or setting the shipping address toggle
-    */
+     * @param null|bool $include_it
+     * @return bool
+     */
     public function includeShippingAddress(?bool $include_it = null)
     {
         //get it
@@ -28,83 +29,103 @@ class WebPaymentRequest extends AbstractRequest
         $this->include_shipping_address = $include_it;
     }
 
+    /**
+     * @return mixed
+     */
     public function getAccessToken()
     {
         return $this->getParameter('accessToken');
     }
 
+    /**
+     * @param $value
+     * @return mixed
+     */
     public function setAccessToken($value)
     {
         return $this->setParameter('accessToken', $value);
     }
 
+    /**
+     * @return mixed
+     */
     public function getLocationId()
     {
         return $this->getParameter('locationId');
     }
 
+    /**
+     * @param $value
+     * @return mixed
+     */
     public function setLocationId($value)
     {
         return $this->setParameter('locationId', $value);
     }
 
+    /**
+     * @return SquareConnect\Model\CreateCheckoutRequest
+     */
     public function getData()
     {
-        $items = $this->getItems();
+        $line_items = [];
 
-        $items_list = array();
-
-        foreach ($items as $index => $item) {
-            $items_list[$index] = new SquareConnect\Model\OrderLineItem(
-                array(
+        foreach ($this->getItems() as $index=>$item) {
+            $line_items[$index] = new SquareConnect\Model\OrderLineItem(
+                [
                     'name' => $item->getName(),
                     'quantity' => strval($item->getQuantity()),
                     'base_price_money' => new SquareConnect\Model\Money(
-                        array(
+                        [
                             'amount' => intval($item->getPrice()*100),
                             'currency' => $this->getCurrency()
-                        )
+                        ]
                     )
-                )
+                ]
             );
         }
 
-        $data_array = array(
+        $data = new \SquareConnect\Model\CreateCheckoutRequest([
             'idempotency_key' => uniqid(),
             'order' => new SquareConnect\Model\Order(array(
                 'reference_id' => $this->getTransactionReference(),
-                'line_items' => $items_list
+                'line_items' => $line_items
             )),
             'ask_for_shipping_address' => $this->includeShippingAddress(),
             'redirect_url' => $this->getReturnUrl()
-        );
-
-        $data = new \SquareConnect\Model\CreateCheckoutRequest($data_array);
+        ]);
 
         return $data;
     }
 
+    /**
+     * @param $data
+     * @return WebPaymentResponse
+     */
     public function sendData($data)
     {
         SquareConnect\Configuration::getDefaultConfiguration()->setAccessToken($this->getAccessToken());
 
         $api_instance = new SquareConnect\Api\CheckoutApi();
 
-
         try {
             $result = $api_instance->createCheckout($this->getLocationId(), $data);
             $result = $result->getCheckout();
-            $response = array(
+            $response = [
                 'id' => $result->getId(),
                 'checkout_url' => $result->getCheckoutPageUrl()
-            );
+            ];
             return $this->createResponse($response);
         } catch (Exception $e) {
             echo 'Exception when calling LocationsApi->listLocations: ', $e->getMessage(), PHP_EOL;
         }
     }
 
-    public function createResponse($response)
+    /**
+     * @param $response
+     * @return WebPaymentResponse
+     */
+    public function createResponse($response) : WebPaymentResponse
     {
         return $this->response = new WebPaymentResponse($this, $response);
     }

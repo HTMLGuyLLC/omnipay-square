@@ -10,61 +10,91 @@ use SquareConnect;
  */
 class TransactionRequest extends AbstractRequest
 {
-
+    /**
+     * @return mixed
+     */
     public function getAccessToken()
     {
         return $this->getParameter('accessToken');
     }
 
+    /**
+     * @param $value
+     * @return mixed
+     */
     public function setAccessToken($value)
     {
         return $this->setParameter('accessToken', $value);
     }
 
+    /**
+     * @return mixed
+     */
     public function getLocationId()
     {
         return $this->getParameter('locationId');
     }
 
+    /**
+     * @param $value
+     * @return mixed
+     */
     public function setLocationId($value)
     {
         return $this->setParameter('locationId', $value);
     }
 
+    /**
+     * @return mixed
+     */
     public function getCheckoutId()
     {
         return $this->getParameter('checkoutId');
     }
 
+    /**
+     * @param $value
+     * @return mixed
+     */
     public function setCheckoutId($value)
     {
         return $this->setParameter('ReceiptId', $value);
     }
 
+    /**
+     * @return mixed
+     */
     public function getTransactionId()
     {
         return $this->getParameter('transactionId');
     }
 
+    /**
+     * @param $value
+     * @return mixed
+     */
     public function setTransactionId($value)
     {
         return $this->setParameter('transactionId', $value);
     }
 
-
+    /**
+     * @return array
+     */
     public function getData()
     {
-        $data = array();
-
-        $data['checkoutId'] = $this->getCheckoutId();
-        $data['transactionId'] = $this->getTransactionId();
-
-        return $data;
+        return [
+            'checkoutId'=>$this->getCheckoutId(),
+            'transactionId'=>$this->getTransactionId()
+        ];
     }
 
+    /**
+     * @param $data
+     * @return TransactionResponse
+     */
     public function sendData($data)
     {
-
         SquareConnect\Configuration::getDefaultConfiguration()->setAccessToken($this->getAccessToken());
 
         $api_instance = new SquareConnect\Api\TransactionsApi();
@@ -72,32 +102,32 @@ class TransactionRequest extends AbstractRequest
         try {
             $result = $api_instance->retrieveTransaction($this->getLocationId(), $data['transactionId']);
 
-            $orders = array();
+            $orders = [];
 
             $lineItems = $result->getTransaction()->getTenders();
-            if (count($lineItems) > 0) {
+            if(count($lineItems)) {
                 foreach ($lineItems as $key => $value) {
-                    $data = array();
-                    $data['quantity'] = 1;
-                    $data['amount'] = $value->getAmountMoney()->getAmount()/100;
-                    $data['currency'] = $value->getAmountMoney()->getCurrency();
-                    array_push($orders, $data);
+                    $orders[] = [
+                        'quantity'=>1,
+                        'amount'=>$value->getAmountMoney()->getAmount()/100,
+                        'currency'=>$value->getAmountMoney()->getCurrency()
+                    ];
                 }
             }
 
             if ($error = $result->getErrors()) {
-                $response = array(
+                $response = [
                     'status' => 'error',
                     'code' => $error['code'],
                     'detail' => $error['detail']
-                );
+                ];
             } else {
-                $response = array(
+                $response = [
                     'status' => 'success',
                     'transactionId' => $result->getTransaction()->getId(),
                     'referenceId' => $result->getTransaction()->getReferenceId(),
                     'orders' => $orders
-                );
+                ];
             }
             return $this->createResponse($response);
         } catch (Exception $e) {
@@ -105,6 +135,10 @@ class TransactionRequest extends AbstractRequest
         }
     }
 
+    /**
+     * @param $response
+     * @return TransactionResponse
+     */
     public function createResponse($response)
     {
         return $this->response = new TransactionResponse($this, $response);

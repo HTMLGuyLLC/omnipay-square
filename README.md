@@ -8,7 +8,7 @@
 [![License](https://poser.pugx.org/transportersio/omnipay-square/license)](https://packagist.org/packages/transportersio/omnipay-square)
 
 [Omnipay](https://github.com/thephpleague/omnipay) is a framework agnostic, multi-gateway payment
-processing library for PHP 5.3+. This package implements Square support for Omnipay.
+processing library for PHP 5.3+. This package implements Square support for Omnipay, however `it increases the minimum version of PHP to 7.1.`
 
 ## Installation
 
@@ -28,7 +28,60 @@ And run composer to update your dependencies:
     $ curl -s http://getcomposer.org/installer | php
     $ php composer.phar update
 
-## Basic Usage
+## Usage Example
+
+Set two environment variables for the access token and location id from square.
+`SQUARE_ACCESS_TOKEN` and `SQUARE_LOCATION_ID`.
+
+The code to redirect a user to square checkout should look something like this:
+```php
+//define order details
+$total_price = 10.99;
+
+$selected_items = [
+    'name'=>'Shoe',
+    'price'=>'10.99',
+    'quantity'=>1
+];
+
+//define a url that the user will be sent back to (with GET variables for transactionId, checkoutId, etc - see square API docs for details) 
+$return_url = 'http://example.com/order-complete';
+
+//tell square about the order and then send the user to checkout
+try
+{
+    /** @var Omnipay\Square\Gateway $gateway */
+    $gateway = \Omnipay\Omnipay::create('Square');
+    $gateway->setAccessToken(getenv('SQUARE_ACCESS_TOKEN'));
+    $gateway->setLocationId(getenv('SQUARE_LOCATION_ID'));
+    $gateway->setCurrency('USD');
+    $gateway->includeShippingAddress($include_shipping_address);
+
+    /** @var \Omnipay\Common\Message\AbstractRequest $request */
+    $request = $gateway->purchase([
+        'amount' => $total_price
+    ]);
+
+    $request->setItems($selected_items);
+    if( $return_url ) {
+        $request->setReturnUrl($return_url);
+    }
+
+    /** @var \Omnipay\Square\Message\WebPaymentResponse $response */
+    $response = $request->send();
+
+    if( !$response->isSuccessful() )
+    {
+        //handle error with $response->getMessage();
+    }
+
+    header('location: '.$response->getData()['checkout_url']);
+}
+catch (Throwable $e)
+{
+    //handle exception
+}
+```
 
 The following gateways are provided by this package:
 
