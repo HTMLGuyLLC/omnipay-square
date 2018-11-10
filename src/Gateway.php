@@ -16,25 +16,6 @@ class Gateway extends AbstractGateway
      */
     public $square;
 
-    //whether or not to include the shipping address fields in the checkout form
-    protected $include_shipping_address = false;
-
-    /**
-     * @param null|bool $include_it
-     * @return bool
-     */
-    public function includeShippingAddress(?bool $include_it = null)
-    {
-        //get it
-        if( is_null($include_it) )
-        {
-            return $this->include_shipping_address;
-        }
-
-        //set it
-        $this->include_shipping_address = $include_it;
-    }
-
     /**
      * @return string
      */

@@ -61,11 +61,11 @@ try
     $gateway->setAccessToken(getenv('SQUARE_ACCESS_TOKEN'));
     $gateway->setLocationId(getenv('SQUARE_LOCATION_ID'));
     $gateway->setCurrency('USD');
-    $gateway->includeShippingAddress($include_shipping_address);
 
     /** @var \Omnipay\Common\Message\AbstractRequest $request */
     $request = $gateway->purchase([
-        'amount' => $total_price
+        'amount' => $total_price,
+        'ask_for_shipping_address'=>false
     ]);
 
     $request->setItems($selected_items);
