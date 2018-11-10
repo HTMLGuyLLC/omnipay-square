@@ -17,6 +17,12 @@ to your `composer.json` file:
 
 ```json
 {
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/HTMLGuyLLC/omnipay-square"
+        }
+    ],
     "require": {
         "transportersio/omnipay-square": "~1.0.0"
     }
