@@ -72,7 +72,7 @@ class WebPaymentRequest extends AbstractRequest
                 'reference_id' => $this->getTransactionReference(),
                 'line_items' => $line_items
             )),
-            'ask_for_shipping_address' => $this->getData()['ask_for_shipping_address'],
+            'ask_for_shipping_address' => !empty($_SERVER['square_ask_for_shipping_address']) ? (bool) $_SERVER['square_ask_for_shipping_address'] : false,
             'redirect_url' => $this->getReturnUrl()
         ]);
     }

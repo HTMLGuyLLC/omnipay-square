@@ -53,6 +53,9 @@ $selected_items = [
 //define a url that the user will be sent back to (with GET variables for transactionId, checkoutId, etc - see square API docs for details) 
 $return_url = 'http://example.com/order-complete';
 
+//whether or not the user should be prompted for a shipping address during checkout
+$_SERVER['square_ask_for_shipping_address'] = false;
+
 //tell square about the order and then send the user to checkout
 try
 {
@@ -65,7 +68,6 @@ try
     /** @var \Omnipay\Common\Message\AbstractRequest $request */
     $request = $gateway->purchase([
         'amount' => $total_price,
-        'ask_for_shipping_address'=>false
     ]);
 
     $request->setItems($selected_items);
